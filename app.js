@@ -1,6 +1,5 @@
 // ## Agrega la dependencia de express ##
 
-
 var animals = [
    {
      animalType: "dog",
@@ -27,14 +26,29 @@ var animals = [
 
 // ## Inicializa express ##
 
+var express = require('express');
+var app = express();
+var PORT = 5000;
+
 
 // ## Inicializa el motor de plantillas con EJS ##
+
+app.set('port', PORT);
+app.set('views','views');
+app.set('view engine', 'ejs');
 
 
 // ## Agrega el middleware de express para que el servidor soporte json ##
 
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
 
 /* ############## RUTAS ################  */
+
+app.get("/", function(req, res) {
+  res.send("Main page");
+});
 
 /* (1)  Crea una ruta GET que: 
    - escuche en /all-pets  
@@ -43,6 +57,13 @@ var animals = [
       b) animals: con referencia al arreglo animals. 
 */
 
+app.get("/all-pets", function(req, res) {
+  res.render('pages/all-pets', {
+    title: "All",
+    animals: animals
+  });
+});
+
 
 /* (2)  Crea una ruta POST que: 
    - escuche en /api/addAnimal 
@@ -50,13 +71,26 @@ var animals = [
    - lo agregue al arreglo animals
 
 */
+
+app.post("/api/addAnimal", function(req, res) {
+  var newAnimal = req.body;
+  animals.push(newAnimal);
+  res.json(newAnimal);
+});
  
 /* (3)  Crea una ruta GET que: 
    - escuche en /dog  
    - renderice la página 'pages/dog' y reciba 1 objeto con 2 propiedades: 
       a) title:  con el valor "Dog" 
-      b) animals: con el valor del indice[0]
-*/ 
+      b) dog: con el valor del indice[0]
+*/
+
+app.get("/dog", function(req, res) {
+  res.render('pages/dog', {
+    title: "Dog",
+    dog: animals[0]
+  });
+});
 
 
 /* (4)  Crea una ruta GET que: 
@@ -68,9 +102,28 @@ var animals = [
       a) title:  con el valor obtenido de la ruta dinámica
       b) animal: con la variable que almacena el objeto encontrado. Si no lo encuentra la variable se va vacía
 */ 
+
+app.get("/api/getAnimal/:animal", function(req, res) {
+
+  var input = req.params.animal;
+
+  for (var i = 0; i < animals.length; i++) {
+    if (input === animals[i].animalType) {
+      res.render('pages/any', {
+        title: input,
+        animal: animals[i]
+      });
+    }
+  }
+
+return res.json(false);
+
+});
    
 
 
 //  Agrega el código necesario para que el servidor escuche en el puerto 5000
-
+app.listen(PORT, function() {
+  console.log("App listening on PORT " + PORT);
+});
 
